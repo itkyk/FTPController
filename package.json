@@ -8,6 +8,7 @@
     "init": "tsc --init",
     "build": "tsc",
     "init": "node ./dist/ftpController.js --init",
+    "test": "node ./dist/ftpController.js --deploy staging"
   },
   "repository": {
     "type": "git",

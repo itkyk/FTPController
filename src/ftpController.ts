@@ -1,8 +1,8 @@
 const { Command } = require('commander');
 const program = new Command();
 program
-    .option("-i, --init", "On/Off flag")
-    .option("-d, --deploy [value]", "deploy value")
+    .option("-i, --init", "create template .env file")
+    .option("-d, --deploy [value]", "push server")
 program.parse(process.argv);
 
 
@@ -94,10 +94,26 @@ const deployData = () => {
     })
 }
 
+const certification = (callback: () => void) => {
+    const input = require('readline').createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    const value = opts.deploy.toUpperCase();
+    input.question(`deployするには「${value}」を入力してください。`, (ans: string) => {
+        if (ans === value) {
+            callback();
+        } else {
+            console.log("入力値が違います。\n再度実行してください。");
+            process.exit(0);
+        }
+    })
+}
+
 
 const opts = program.opts();
 if (opts.init === true) {
     init.default();
 } else if (opts.deploy) {
-    deployData();
+    certification(deployData);
 }
