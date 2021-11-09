@@ -1,18 +1,20 @@
 {
   "name": "@itkyk/ftp-controller",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "",
   "main": "dist/ftpController.js",
   "scripts": {
     "start": "tsc -w",
-    "init": "tsc --init",
-    "build": "tsc",
     "init": "node ./dist/ftpController.js --init",
+    "build": "tsc",
     "test": "node ./dist/ftpController.js --deploy staging"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/itkyk/FTPController.git"
+  },
+  "bin": {
+    "ftpController": "/dist/ftpController.js"
   },
   "author": "",
   "license": "ISC",

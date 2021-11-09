@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const { Command } = require('commander');
 const program = new Command();
 program
@@ -18,7 +19,7 @@ const defaultOptions = {
     user: "",
     password: "",
     host: "",
-    localRoot: `../dist/`,
+    localRoot: `./dist/`,
     remoteRoot: "/htdocs/",
     include: ["*", "**/*"],
     deleteRemote: false,
@@ -77,6 +78,7 @@ const deployData = () => {
         console.log("\n\x1b[32m---------------------")
         console.log("Completed file upload")
         console.log("---------------------\x1b[0m")
+        process.exit(0);
     }).catch((err: any) => {
         console.log("\x1b[31m Error file upload\x1b[0\n", err)
     })
