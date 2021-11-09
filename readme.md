@@ -3,7 +3,7 @@
 ## 使い方
 1. npmをインストール
     ```
-    $ npm i -D @itkyk/ftp-controller commander ftp-deploy readline dotenv
+    $ npm i -D @itkyk/ftp-controller
     ```
 
 2. `package.json`へスクリプトを追加
@@ -54,7 +54,7 @@
 ## How to Use
 1. Npm module install
     ```
-    $ npm i -D @itkyk/ftp-controller commander ftp-deploy readline dotenv
+    $ npm i -D @itkyk/ftp-controller
     ```
 
 2. Add scripts in `package.json`
