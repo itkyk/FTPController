@@ -21,7 +21,7 @@
     $ npm run ftp:init
     ```
    プロジェクトのルートディレクトリに`/ftp/.env.template`が作成されます。
-   この作られたテンプレートの`.env`ファイルを編集して設定ファイルを作成。
+   この作られたテンプレートの`.env`ファイルを編集して設定ファイルを作成。  
    例) `.env.template` → `.env.preview`
   
 
@@ -29,14 +29,22 @@
     ```
     $ npm run deploy:prev
     ```
+   
+
+### Options
+| option | value | description | 
+|----------|---------|----------------|
+| --init, -i | - | .envファイルのテンプレート作成<br>他optionとpの併用不可 |
+|--deploy, -d < value > | string | FTPアップ時のコマンドです。<br>`.env`後ろの拡張子をvalueとして与えてください。<br>(ex) .env.preview → --deploy preview |
+
 
 ## How to Use
-1. npm module install
+1. Npm module install
     ```
         $ npm i -D @itkyk/ftp-controller
     ```
 
-2. add scripts in `package.json`
+2. Add scripts in `package.json`
     ```json
         "script": {
           "ftp:init": "dtp-controller --init",
@@ -45,15 +53,21 @@
         }
     ```
    
-3. hit npm init command
+3. Run npm init command
     ```
         $ npm run ftp:init
     ```
-   this command is add template file of `.env`.  
-    You should rewrite that template file name.  
+   This command is added template file of `.env`.  
+   We recommend that  you rewrite file name of that template.  
    ex) `.env.template` → `.env.preview`
 
-4. hit npm deploy command
+4. Run npm deploy command
     ```
         $ npm run deploy:prev
     ```
+
+### Options
+| option | value | description | 
+|----------|---------|----------------|
+| --init, -i | - | Create template file of `.env`file<br>This option can't be used with other options. |
+|--deploy, -d < value > | string | FTP deploy option.<br>You give extension of `.env` file.<br>(ex) .env.preview → --deploy preview |
