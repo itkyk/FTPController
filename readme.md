@@ -35,9 +35,22 @@
 | option | value | description | 
 |----------|---------|----------------|
 | --init, -i | - | .envファイルのテンプレート作成<br>他optionとpの併用不可 |
-|--deploy, -d < value > | string | FTPアップ時のコマンドです。<br>`.env`後ろの拡張子をvalueとして与えてください。<br>(ex) .env.preview → --deploy preview |
+|--deploy, -d < value > | String | FTPアップ時のコマンドです。<br>`.env`後ろの拡張子をvalueとして与えてください。<br>(ex) .env.preview → --deploy preview |
 
-
+### envファイル設定
+| option | value | default<br>(指定しなかった場合) | description | 
+|----------|---------|---------|----------------|
+| user |  String | - |FTP ID |
+| password | String | - | FTP pass word |
+| host | String | - | FTP URL |
+| port |  Number | - | FTP access PORT |
+| localRoot | String | /dist/ | ファイルアップ先のパス |
+| remoteRoot | String | /htdocs/ | アップ先のディレクトリターゲット |
+| include | Array | "\*", "\**/\*" | アップするファイルを指定。<br>.envファイルでは以下のように記述してください。<br>```include: "*, **/*"``` |
+| exclude | Array | - | アップしないファイルを指定。<br>.envファイルでは以下のように記述してください。<br>```include: "*, **/*"``` |
+| deleteRemote | Boolean | false | アップロードする前に宛先にある既存のファイルをすべて削除するかどうか指定します。 |
+| forcePasv | Boolean | false | パッシブモードが強制するかどうか指定します。 |
+| sftp | Boolean | -| SFTPを使用するかどうか指定します。 |
 ## How to Use
 1. Npm module install
     ```

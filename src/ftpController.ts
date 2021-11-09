@@ -18,7 +18,7 @@ const defaultOptions = {
     user: "",
     password: "",
     host: "",
-    localRoot: `../dist/`,
+    localRoot: `/dist/`,
     remoteRoot: "/htdocs/",
     include: ["*", "**/*"],
     deleteRemote: false,
