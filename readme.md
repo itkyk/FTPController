@@ -10,7 +10,7 @@
     ```json
     "script": {
       "ftp:init": "ftpController --init",
-      "deplpy:prev": "ftpController --deploy preview",
+      "deploy:prev": "ftpController --deploy preview",
       "deploy:stg": "ftpController --deploy staging"
     }
     ```
@@ -61,7 +61,7 @@
     ```json
         "script": {
           "ftp:init": "ftpController --init",
-          "deplpy:prev": "ftpController --deploy preview",
+          "deploy:prev": "ftpController --deploy preview",
           "deploy:stg": "ftpController --deploy staging"
         }
     ```
