@@ -9,9 +9,9 @@
 2. `package.json`へスクリプトを追加
     ```json
     "script": {
-      "ftp:init": "dtp-controller --init",
-      "deplpy:prev": "ftp-controller --deploy preview",
-      "deploy:stg": "ftp-controller --deploy staging"
+      "ftp:init": "ftpController --init",
+      "deplpy:prev": "ftpController --deploy preview",
+      "deploy:stg": "ftpController --deploy staging"
     }
     ```
   
@@ -60,9 +60,9 @@
 2. Add scripts in `package.json`
     ```json
         "script": {
-          "ftp:init": "dtp-controller --init",
-          "deplpy:prev": "ftp-controller --deploy preview",
-          "deploy:stg": "ftp-controller --deploy staging"
+          "ftp:init": "ftpController --init",
+          "deplpy:prev": "ftpController --deploy preview",
+          "deploy:stg": "ftpController --deploy staging"
         }
     ```
    
