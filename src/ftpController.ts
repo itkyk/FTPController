@@ -84,7 +84,7 @@ const deployData = () => {
     })
     ftpDeploy.on("uploading", (data: any) => {
         fileTotalCount = data.totalFilesCount + 1;
-        const fileUpdatedRate = data.transferredFileCount / fileTotalCount * 100;
+        const fileUpdatedRate = Math.trunc(data.transferredFileCount / fileTotalCount * 100);
         createBar(fileUpdatedRate)
         process.stdout.write('\x1B[?25l')
         if(data.transferredFileCount) {
