@@ -1,20 +1,20 @@
 {
   "name": "@itkyk/ftp-controller",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "description": "",
-  "main": "dist/ftpController.js",
+  "main": "./bin/ftpController.js",
   "scripts": {
     "start": "tsc -w",
-    "init": "node ./dist/ftpController.js --init",
+    "init": "node ./bin/ftpController.js --init",
     "build": "tsc",
-    "test": "node ./dist/ftpController.js --deploy staging"
+    "test": "node ./bin/ftpController.js --deploy staging"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/itkyk/FTPController.git"
   },
   "bin": {
-    "ftpController": "/dist/ftpController.js"
+    "ftpController": "./bin/ftpController.js"
   },
   "author": "Takayuki Inoue <> (https://github.com/ITakayuki)",
   "license": "ISC",
