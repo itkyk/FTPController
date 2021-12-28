@@ -9,6 +9,8 @@ interface uploadListInterface {
     uploaded: boolean;
 }
 
+import Util from "./Util";
+
 const FtpDeploy = require("ftp-deploy");
 const ftpDeploy = new FtpDeploy();
 const readline = require("readline");
@@ -79,7 +81,9 @@ const deployData = (option: optionsInterface) => {
     ftpDeploy.deploy(ftpOptions).then(()=> {
         if (option.list) {
             for (let i = 0; i < deployFileList.length; i++) {
-                console.log(deployFileList[i]);
+                const status:string = deployFileList[i].uploaded? Util.logGreen("Success!"): Util.logRed("Failure!");
+                const pushText = `filename: ${deployFileList[i].name}, Status: ${status}`
+                console.log(pushText);
             }
         }
         console.log("\n\x1b[32m---------------------")
