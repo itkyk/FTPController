@@ -7,11 +7,13 @@ interface optionsInterface {
 interface uploadListInterface {
     name: string;
     uploaded: boolean;
+    date: string;
 }
 
 import Util from "./Util";
 
 const FtpDeploy = require("ftp-deploy");
+const fs = require("fs");
 const ftpDeploy = new FtpDeploy();
 const readline = require("readline");
 
@@ -72,6 +74,14 @@ const createBar = (_fileUpdatedRate: number) => {
     }
 }
 
+const pushLogFile = (data:uploadListInterface[]) => {
+    let pushText = "";
+    for (let i = 0; i < data.length; i++) {
+      pushText = pushText + `${data[i].name}, ${data[i].date}, ${data[i].uploaded}\n`;
+    }
+    fs.writeFileSync("./ftp/ftp-upload.log", pushText);
+}
+
 const deployData = (option: optionsInterface) => {
     const deployFileList:uploadListInterface[] = [];
     const ftpOptions = transformObject(option);
@@ -86,6 +96,7 @@ const deployData = (option: optionsInterface) => {
                 console.log(pushText);
             }
         }
+      pushLogFile(deployFileList);
         console.log("\n\x1b[32m---------------------")
         console.log("Completed file upload")
         console.log("---------------------\x1b[0m")
@@ -105,12 +116,12 @@ const deployData = (option: optionsInterface) => {
         process.stdout.write(`uploading(${fileUpdatedRate}%) ${bar} ${data.filename}`)
         process.stdout.write('\x1B[?25h')
         if (option.list) {
-            deployFileList.push({name: data.filename, uploaded: true});
+            deployFileList.push({name: data.filename, uploaded: true, date: `${new Date()}`});
         }
     })
     ftpDeploy.on("upload-error", (data: any) => {
         if(option.list) {
-            deployFileList.push({name: data.filename, uploaded: false})
+            deployFileList.push({name: data.filename, uploaded: false, date: `${new Date()}`})
         }
     })
 }
