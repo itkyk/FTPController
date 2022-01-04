@@ -115,16 +115,12 @@ const deployData = (option: optionsInterface) => {
         }
         process.stdout.write(`uploading(${fileUpdatedRate}%) ${bar} ${data.filename}`)
         process.stdout.write('\x1B[?25h')
-        if (option.list) {
-            const date = new Date();
-            deployFileList.push({name: data.filename, uploaded: true, date: `${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}  ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`});
-        }
+          const date = new Date();
+          deployFileList.push({name: data.filename, uploaded: true, date: `${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}  ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`});
     })
     ftpDeploy.on("upload-error", (data: any) => {
-        if(option.list) {
-            const date = new Date();
-            deployFileList.push({name: data.filename, uploaded: false, date: `${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}  ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`})
-        }
+          const date = new Date();
+          deployFileList.push({name: data.filename, uploaded: false, date: `${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}  ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`})
     })
 }
 
