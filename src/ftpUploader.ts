@@ -77,7 +77,7 @@ const createBar = (_fileUpdatedRate: number) => {
 const pushLogFile = (data:uploadListInterface[]) => {
     let pushText = "";
     for (let i = 0; i < data.length; i++) {
-      pushText = pushText + `${data[i].name}, ${data[i].date}, ${data[i].uploaded}\n`;
+      pushText = pushText + `Status: ${data[i].uploaded}, Date: ${data[i].date}, File: ${data[i].name}\n`;
     }
     fs.writeFileSync("./ftp/ftp-upload.log", pushText);
 }
@@ -116,12 +116,14 @@ const deployData = (option: optionsInterface) => {
         process.stdout.write(`uploading(${fileUpdatedRate}%) ${bar} ${data.filename}`)
         process.stdout.write('\x1B[?25h')
         if (option.list) {
-            deployFileList.push({name: data.filename, uploaded: true, date: `${new Date()}`});
+            const date = new Date();
+            deployFileList.push({name: data.filename, uploaded: true, date: `${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}  ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`});
         }
     })
     ftpDeploy.on("upload-error", (data: any) => {
         if(option.list) {
-            deployFileList.push({name: data.filename, uploaded: false, date: `${new Date()}`})
+            const date = new Date();
+            deployFileList.push({name: data.filename, uploaded: false, date: `${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}  ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`})
         }
     })
 }

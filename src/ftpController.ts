@@ -8,7 +8,7 @@ const program = new Command();
 program
     .option("-i, --init", "Create template .env file.", false)
     .option("-d, --deploy [value]", "Upload server.")
-    .option("-l, --list", "When end deploy, puts upload files on console.", true)
+    .option("-l, --list", "When end deploy, puts upload files on console.", false)
 program.parse(process.argv);
 
 
