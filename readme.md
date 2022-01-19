@@ -29,6 +29,8 @@
     ```
     $ npm run deploy:prev
     ```
+5. 完了
+    - 完了すると、`/ftp/ftp-upload.log`が出力されます。
    
 
 ### Options
@@ -36,6 +38,7 @@
 |----------|---------|----------------|
 | --init, -i | - | .envファイルのテンプレート作成<br>他optionとpの併用不可 |
 |--deploy, -d < value > | String | FTPアップ時のコマンドです。<br>`.env`後ろの拡張子をvalueとして与えてください。<br>(ex) .env.preview → --deploy preview |
+|--list, -l | Boolean | `true`にするとFTPアップ時にconsoleにアップしたファイルが表示されます。 |
 
 ### envファイル設定
 | option | value | default<br>(指定しなかった場合) | description | 
@@ -72,15 +75,35 @@
     ```
    This command is added template file of `.env`.  
    We recommend that  you rewrite file name of that template.  
-   ex) `.env.template` → `.env.preview`
-
+   ex) `.env.template` → `.env.preview`  
+  
 4. Run npm deploy command
     ```
         $ npm run deploy:prev
     ```
+   
+5. finished
+- When complete, `/ftp/ftp-upload.log` will be output.
 
 ### Options
 | option | value | description | 
 |----------|---------|----------------|
 | --init, -i | - | Create template file of `.env`file<br>This option can't be used with other options. |
 |--deploy, -d < value > | string | FTP deploy option.<br>You give extension of `.env` file.<br>(ex) .env.preview → --deploy preview |
+|--list, -l | boolean | if `true` and when finish uploading, push log by console |
+
+
+### Options of env
+| option | value | default<br>(指定しなかった場合) | description | 
+|----------|---------|---------|----------------|
+| user |  String | - |FTP ID |
+| password | String | - | FTP pass word |
+| host | String | - | FTP URL |
+| port |  Number | - | FTP access PORT |
+| localRoot | String | /dist/ | File upload destination path |
+| remoteRoot | String | /htdocs/ | Directory target to upload |
+| include | Array | "\*", "\**/\*" | Specify the file to upload. In the <br> .env file, write as follows.<br>```include: "*, **/*"``` |
+| exclude | Array | - | Specify the file that will not be uploaded. In the <br> .env file, write as follows.<br>```include: "*, **/*"``` |
+| deleteRemote | Boolean | false | Specifies whether to delete all existing files at the destination before uploading. |
+| forcePasv | Boolean | false | Specifies whether passive mode enforces. |
+| sftp | Boolean | -|Specifies whether to use SFTP. |
