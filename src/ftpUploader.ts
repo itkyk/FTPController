@@ -82,7 +82,7 @@ const pushLogFile = (data:uploadListInterface[]) => {
     fs.writeFileSync("./ftp/ftp-upload.log", pushText);
 }
 
-const deployData = (option: optionsInterface) => {
+export const deployData = (option: optionsInterface) => {
     const deployFileList:uploadListInterface[] = [];
     const ftpOptions = transformObject(option);
     console.log("\x1b[34m---------------------")
@@ -97,10 +97,14 @@ const deployData = (option: optionsInterface) => {
             }
         }
       pushLogFile(deployFileList);
-        console.log("\n\x1b[32m---------------------")
-        console.log("Completed file upload")
-        console.log("---------------------\x1b[0m")
-        process.exit(0);
+      readline.clearLine(process.stdout);
+      readline.cursorTo(process.stdout, 0);
+      createBar(100);
+      process.stdout.write(`uploading(100%) ${bar} complete.`)
+      console.log("\n\x1b[32m---------------------")
+      console.log("Completed file upload")
+      console.log("---------------------\x1b[0m")
+      process.exit(0);
     }).catch((err: any) => {
         console.log("\x1b[31m Error file upload\x1b[0\n", err)
     })
