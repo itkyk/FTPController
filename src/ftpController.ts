@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import init from "./createEnv";
-import certification from "./ftpUploader";
+import {certification} from "./ftpUploader";
 
 const { Command } = require('commander');
 const program = new Command();

@@ -1,7 +1,6 @@
 interface optionsInterface {
     deploy: string,
-    init: boolean;
-    list: boolean;
+    list?: boolean;
 }
 
 interface uploadListInterface {
@@ -82,14 +81,16 @@ const pushLogFile = (data:uploadListInterface[]) => {
     fs.writeFileSync("./ftp/ftp-upload.log", pushText);
 }
 
-export const deployData = (option: optionsInterface) => {
+const deploy = (key: string, list: boolean = false) => {
     const deployFileList:uploadListInterface[] = [];
-    const ftpOptions = transformObject(option);
+    const ftpOptions = transformObject({
+      deploy: key, list
+    });
     console.log("\x1b[34m---------------------")
     console.log("!! Start Deploying !!")
     console.log("---------------------\x1b[0m")
     ftpDeploy.deploy(ftpOptions).then(()=> {
-        if (option.list) {
+        if (list) {
             for (let i = 0; i < deployFileList.length; i++) {
                 const status:string = deployFileList[i].uploaded? Util.logGreen("Success!"): Util.logRed("Failure!");
                 const pushText = `filename: ${deployFileList[i].name}, Status: ${status}`
@@ -128,7 +129,7 @@ export const deployData = (option: optionsInterface) => {
     })
 }
 
-const certification = (option: optionsInterface) => {
+export const certification = (option: optionsInterface) => {
     const input = require('readline').createInterface({
         input: process.stdin,
         output: process.stdout
@@ -136,7 +137,7 @@ const certification = (option: optionsInterface) => {
     const value = option.deploy.toUpperCase();
     input.question(`deployするには「${value}」を入力してください。`, (ans: string) => {
         if (ans === value) {
-            deployData(option);
+            deploy(option.deploy, option.list);
         } else {
             console.log("入力値が違います。\n再度実行してください。");
             process.exit(0);
@@ -144,4 +145,4 @@ const certification = (option: optionsInterface) => {
     })
 }
 
-export default certification;
+export default deploy;

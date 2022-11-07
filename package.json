@@ -6,8 +6,7 @@
   "scripts": {
     "start": "tsc -w",
     "init": "node ./bin/ftpController.js --init",
-    "build": "tsc",
-    "test": "node ./bin/ftpController.js --deploy staging"
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -21,6 +20,7 @@
   "bugs": {
     "url": "https://github.com/itkyk/FTPController/issues"
   },
+  "keywords": ["ftp","deploy","client","node","transfer", "typescript"],
   "homepage": "https://github.com/itkyk/FTPController#readme",
   "devDependencies": {
     "@types/node": "^16.11.6",
