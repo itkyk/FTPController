@@ -23,7 +23,6 @@ let fileTotalCount = null;
 
 const defaultOptions = {
     user: "",
-    password: "",
     host: "",
     localRoot: `./dist/`,
     remoteRoot: "/htdocs/",
