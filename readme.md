@@ -33,7 +33,7 @@
       1. Import this module
          1. 
             ```typescript
-            import {deploy} from "@itkyk/ftp-controller";
+            import deploy from "@itkyk/ftp-controller";
             deploy({
              key: "preview", // required
              list: false // not required. default is `false`.
@@ -101,7 +101,7 @@
         1. importして使う
             1.
             ```typescript
-            import {deploy} from "@itkyk/ftp-controller";
+            import deploy from "@itkyk/ftp-controller";
             deploy({
              key: "preview", // required
              list: false // not required. default is `false`.

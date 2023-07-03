@@ -57,6 +57,9 @@ const transformObject = (option: optionsInterface) => {
     if (result.sftp) {
         resultOptions.sftp = result.sftp === "true" ? true : false;
     }
+    if (result.privateKey) {
+      resultOptions.privateKey = fs.readFileSync(result.privateKey);
+    }
 
     const options = Object.assign(defaultOptions, resultOptions);
     return options

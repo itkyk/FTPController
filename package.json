@@ -1,6 +1,6 @@
 {
   "name": "@itkyk/ftp-controller",
-  "version": "0.1.9",
+  "version": "0.1.91",
   "description": "",
   "main": "./bin/ftpController.js",
   "scripts": {
