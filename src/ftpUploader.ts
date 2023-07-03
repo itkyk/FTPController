@@ -22,7 +22,8 @@ let bar = "";
 let fileTotalCount = null;
 
 const defaultOptions = {
-    user: "",
+    user: "anonymous",
+    password: "anonymous",
     host: "",
     localRoot: `./dist/`,
     remoteRoot: "/htdocs/",
