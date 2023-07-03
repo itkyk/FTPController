@@ -22,8 +22,8 @@ let bar = "";
 let fileTotalCount = null;
 
 const defaultOptions = {
-    user: "",
-    password: "",
+    user: "anonymous",
+    password: "anonymous",
     host: "",
     localRoot: `./dist/`,
     remoteRoot: "/htdocs/",
@@ -56,6 +56,9 @@ const transformObject = (option: optionsInterface) => {
     }
     if (result.sftp) {
         resultOptions.sftp = result.sftp === "true" ? true : false;
+    }
+    if (result.privateKey) {
+      resultOptions.privateKey = fs.readFileSync(result.privateKey);
     }
 
     const options = Object.assign(defaultOptions, resultOptions);
