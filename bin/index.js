@@ -18,11 +18,15 @@ var __copyProps = (to, from, except, desc) => {
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var ts_src_exports = {};
 __export(ts_src_exports, {
+  FtpConfig: () => import_defineConfig.FtpConfig,
+  ServerConfig: () => import_defineConfig.ServerConfig,
   defineConfig: () => import_defineConfig.defineConfig
 });
 module.exports = __toCommonJS(ts_src_exports);
 var import_defineConfig = require("./core/defineConfig");
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  FtpConfig,
+  ServerConfig,
   defineConfig
 });

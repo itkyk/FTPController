@@ -1,6 +1,6 @@
 {
   "name": "@itkyk/ftp-controller",
-  "version": "1.0.0-beta.0.3",
+  "version": "1.0.0-beta.0.4",
   "main": "bin/index.js",
   "types": "bin/index.d.ts",
   "repository": {
@@ -9,18 +9,6 @@
   },
   "bin": {
     "ftp": "./bin/cli/index.js"
-  },
-  "exports": {
-    ".": {
-      "imort": "./bin/index.js",
-      "require": "./bin/index.js",
-      "types": "./types/index.d.ts"
-    },
-    "./core": {
-      "impote": "./lib/index.js",
-      "require": "./lib/index.js",
-      "types": "./lib/index.d.ts"
-    }
   },
   "napi": {
     "name": "ftp-controller",

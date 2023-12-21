@@ -13,6 +13,8 @@ fn deploy(local_root: String, remote_root: String, host: String,  password: Stri
     if is_delete {
         deleting = true;
     }
-    println!("{:?}, {:?}, {:?}, {:?}, {:?}, {:?}, ", &local_root, &remote_root, &result_host.as_str(), &user, &password, deleting);
-    let _ = ftp_module::ftp_init(&local_root, &remote_root, &result_host.as_str(), &user, &password, deleting);
+    let res = ftp_module::ftp_init(&local_root, &remote_root, &result_host.as_str(), &user, &password, deleting);
+    if !res.is_ok() {
+        println!("FTP Connection Error");
+    }
 }

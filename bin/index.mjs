@@ -1,4 +1,6 @@
-import { defineConfig } from "./core/defineConfig";
+import { defineConfig, FtpConfig, ServerConfig } from "./core/defineConfig";
 export {
+  FtpConfig,
+  ServerConfig,
   defineConfig
 };
