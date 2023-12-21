@@ -5,7 +5,7 @@
   "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/itkyk/ftp-core.git"
+    "url": "git+https://github.com/itkyk/FTPController.git"
   },
   "bin": {
     "ftpController": "./bin/cli/index.cjs"
