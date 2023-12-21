@@ -1,0 +1,23 @@
+{
+  "name": "@itkyk/ftp-controller-win32-x64-msvc",
+  "version": "1.0.0-beta.0.1",
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "ftp-controller.win32-x64-msvc.node",
+  "files": [
+    "ftp-controller.win32-x64-msvc.node"
+  ],
+  "description": "ftp uploader core code",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itkyk/ftp-core.git"
+  }
+}
