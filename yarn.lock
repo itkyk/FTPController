@@ -196,7 +196,7 @@ __metadata:
     interpret: "npm:^3.1.1"
     rechoir: "npm:^0.8.0"
   bin:
-    ftpController: ./bin/cli/index.cjs
+    ftp: ./bin/cli/index.js
   languageName: unknown
   linkType: soft
 
