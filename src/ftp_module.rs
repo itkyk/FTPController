@@ -64,8 +64,9 @@ pub fn upload_files(mut ftp: FtpStream, local: &str) -> Result<FtpStream> {
     let (files, dirs) = get_remotes(&local, &entries_path).ok().unwrap();
     ftp = create_dirs(ftp, dirs);
     let mut count: u64 = 0;
+    let velocity: u64 = 1;
     for _ in &files {
-        count+=1;
+        count = count + 1;
     }
     let bar = ProgressBar::new(count);
     bar.set_style(ProgressStyle::with_template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
@@ -145,7 +146,7 @@ pub fn ftp_init(local: &str, remote: &str, host: &str, user: &str, pw: &str, is_
         if stream == false {
             ftp.mkdir(&remote_root).ok();
         }
-        ftp.cwd(remote_root).unwrap();
+        ftp.cwd(&remote_root).ok();
     }
     if is_delete {
         println!("Start delete remote");

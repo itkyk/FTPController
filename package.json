@@ -1,8 +1,8 @@
 {
   "name": "@itkyk/ftp-controller",
-  "version": "1.0.0-beta.0.2",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "version": "1.0.0-beta.0.3",
+  "main": "bin/index.js",
+  "types": "bin/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/itkyk/FTPController.git"
@@ -12,11 +12,13 @@
   },
   "exports": {
     ".": {
-      "default": "./bin/index.js",
+      "imort": "./bin/index.js",
+      "require": "./bin/index.js",
       "types": "./types/index.d.ts"
     },
     "./core": {
-      "default": "./lib/index.js",
+      "impote": "./lib/index.js",
+      "require": "./lib/index.js",
       "types": "./lib/index.d.ts"
     }
   },
@@ -36,7 +38,6 @@
     "@types/rechoir": "^0.6.4",
     "esbuild": "^0.19.10",
     "esbuild-node-externals": "^1.12.0",
-    "esbuild-register": "^3.5.0",
     "glob": "^10.3.10"
   },
   "engines": {
@@ -57,6 +58,7 @@
   "description": "ftp uploader core code",
   "dependencies": {
     "commander": "^11.1.0",
+    "esbuild-register": "^3.5.0",
     "interpret": "^3.1.1",
     "rechoir": "^0.8.0"
   }
