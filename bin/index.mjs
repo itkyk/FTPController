@@ -1,6 +1,7 @@
-import { defineConfig, FtpConfig, ServerConfig } from "./core/defineConfig";
+// ts-src/core/defineConfig.ts
+var defineConfig = (config) => {
+  return config;
+};
 export {
-  FtpConfig,
-  ServerConfig,
   defineConfig
 };
