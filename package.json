@@ -2,7 +2,7 @@
   "name": "@itkyk/ftp-controller",
   "version": "1.0.0-beta.0.4",
   "main": "bin/index.js",
-  "types": "bin/index.d.ts",
+  "types": "types/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/itkyk/FTPController.git"
