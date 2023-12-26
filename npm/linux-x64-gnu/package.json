@@ -1,6 +1,6 @@
 {
   "name": "@itkyk/ftp-controller-linux-x64-gnu",
-  "version": "1.0.0-beta.0.1",
+  "version": "1.0.0-beta.0.4",
   "os": [
     "linux"
   ],
@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/itkyk/ftp-core.git"
+    "url": "git+https://github.com/itkyk/FTPController.git"
   },
   "libc": [
     "glibc"

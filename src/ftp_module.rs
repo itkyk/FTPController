@@ -1,4 +1,4 @@
-use ftp::{FtpStream};
+use ftp::{FtpStream, FtpError};
 use std::fs;
 use std::fs::File;
 use std::io::{Cursor, Read};
@@ -8,7 +8,6 @@ use std::path::PathBuf;
 use std::hash::{Hash, Hasher};
 use std::collections::hash_map::DefaultHasher;
 use indicatif::{ProgressBar, ProgressStyle};
-use std::io::Result;
 
 struct DeletePathMap {
     file_type: String,
@@ -24,7 +23,7 @@ impl Hash for DeletePathMap {
 }
 
 
-fn get_remotes(target: &str, dir: &PathBuf) -> Result<(Vec<PathBuf>, Vec<PathBuf>)> {
+fn get_remotes(target: &str, dir: &PathBuf) -> std::io::Result<(Vec<PathBuf>, Vec<PathBuf>)> {
     let mut paths = Vec::new();
     let mut dirs = Vec::new();
     if dir.is_dir() {
@@ -56,16 +55,16 @@ fn create_dirs (mut ftp: FtpStream, dir_list: Vec<PathBuf>) -> FtpStream {
     for dir in dir_list {
         ftp.mkdir(dir.to_str().unwrap()).ok();
     }
-    return ftp;
+    ftp
 }
 
-pub fn upload_files(mut ftp: FtpStream, local: &str) -> Result<FtpStream> {
+pub fn upload_files(mut ftp: FtpStream, local: &str) -> FtpStream {
     let entries_path = PathBuf::from(&local);
     let (files, dirs) = get_remotes(&local, &entries_path).ok().unwrap();
     ftp = create_dirs(ftp, dirs);
     let mut count: u64 = 0;
     for _ in &files {
-        count+=1;
+        count = count + 1;
     }
     let bar = ProgressBar::new(count);
     bar.set_style(ProgressStyle::with_template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
@@ -88,7 +87,7 @@ pub fn upload_files(mut ftp: FtpStream, local: &str) -> Result<FtpStream> {
         bar.inc(1);
     }
     bar.finish();
-    return Ok(ftp);
+    return ftp
 }
 
 fn get_delete_files(mut ftp: FtpStream, root: &str) -> (FtpStream, Vec<DeletePathMap>){
@@ -107,9 +106,9 @@ fn get_delete_files(mut ftp: FtpStream, root: &str) -> (FtpStream, Vec<DeletePat
     return (ftp, files);
 }
 
-fn delete (mut ftp: FtpStream, path: &str) -> FtpStream {
+fn delete (mut ftp: FtpStream, path: &str) -> FtpStream{
     ftp.rm(&path).unwrap();
-    return ftp;
+    return ftp
 }
 
 fn delete_files (mut ftp: FtpStream, root: &str) -> FtpStream {
@@ -128,34 +127,32 @@ fn delete_files (mut ftp: FtpStream, root: &str) -> FtpStream {
             // Directoryだったら
             let mut path = PathBuf::from(root);
             path.push(&item.file_name);
-            let f = delete_files(ftp, &path.to_str().unwrap());
-            ftp = f;
+            ftp = delete_files(ftp, &path.to_str().unwrap());
             ftp.rmdir(&path.to_str().unwrap()).ok();
         }
     };
     return ftp;
 }
 
-pub fn ftp_init(local: &str, remote: &str, host: &str, user: &str, pw: &str, is_delete: bool) -> Result<()> {
-    let mut ftp = FtpStream::connect(host).unwrap();
+pub fn ftp_init(local: &str, remote: &str, host: &str, user: &str, pw: &str, is_delete: bool) -> std::result::Result<(), FtpError> {
+    let mut ftp = FtpStream::connect(host)?;
     let _ = ftp.login(user, pw).unwrap();
     ftp.transfer_type(ftp::types::FileType::Binary).ok();
     for remote_root in remote.split("/").collect::<Vec<_>>() {
         let stream = ftp.size(&remote_root).is_ok();
-        if stream == false {
+        if stream != false{
             ftp.mkdir(&remote_root).ok();
         }
-        ftp.cwd(remote_root).unwrap();
+        ftp.cwd(&remote_root).ok();
     }
     if is_delete {
         println!("Start delete remote");
         let last_delete_root = PathBuf::from("./");
-        let _ftp = delete_files(ftp, &last_delete_root.to_str().unwrap());
-        ftp = _ftp;
+        ftp = delete_files(ftp, &last_delete_root.to_str().unwrap());
         println!("Finish delete remote");
     }
     println!("Start Upload");
-    ftp = upload_files(ftp, local)?;
+    ftp = upload_files(ftp, local);
     println!("End Upload");
     ftp.quit().ok();
     Ok(())
