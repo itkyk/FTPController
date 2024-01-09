@@ -1,14 +1,15 @@
 {
   "name": "@itkyk/ftp-controller",
   "version": "1.0.0-beta.0.4",
-  "main": "bin/index.js",
+  "main": "bin/index.cjs",
   "types": "types/index.d.ts",
+  "module": "bin/index.mjs",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/itkyk/FTPController.git"
   },
   "bin": {
-    "ftp": "./bin/cli/index.js"
+    "ftp": "./bin/cli/index.cjs"
   },
   "napi": {
     "name": "ftp-controller",
@@ -16,6 +17,18 @@
       "additional": [
         "aarch64-apple-darwin"
       ]
+    }
+  },
+  "exports": {
+    ".": {
+      "require": "./bin/index.cjs",
+      "import": "./bin/index.mjs",
+      "types": "./types/index.d.ts"
+    },
+    "./core": {
+      "require": "./lib/index.cjs",
+      "import": "./lib/index.mjs",
+      "types": "./lib/index.d.ts"
     }
   },
   "license": "MIT",
@@ -26,7 +39,9 @@
     "@types/rechoir": "^0.6.4",
     "esbuild": "^0.19.10",
     "esbuild-node-externals": "^1.12.0",
-    "glob": "^10.3.10"
+    "esbuild-plugin-ignore": "^1.1.1",
+    "glob": "^10.3.10",
+    "typescript": "^5.3.3"
   },
   "engines": {
     "node": ">= 10"
@@ -35,7 +50,8 @@
     "artifacts": "napi artifacts",
     "build": "napi build --platform --release",
     "build:lib": "napi build --platform --release ./lib",
-    "build:src": "node -r esbuild-register ./build && tsc --declaration --emitDeclarationOnly",
+    "build:src": "tsc --outDir dist && node -r esbuild-register ./build && tsc --declaration --emitDeclarationOnly --outDir types",
+    "build:all": "npm run build:lib && npm run build:src",
     "build:debug": "napi build --platform",
     "prepublishOnly": "napi prepublish -t npm",
     "universal": "napi universal",
@@ -46,8 +62,6 @@
   "description": "ftp uploader core code",
   "dependencies": {
     "commander": "^11.1.0",
-    "esbuild-register": "^3.5.0",
-    "interpret": "^3.1.1",
-    "rechoir": "^0.8.0"
+    "esbuild-register": "^3.5.0"
   }
 }

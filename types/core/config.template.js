@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const templateConfig = `import { defineConfig } from "@itkyk/ftp-controller";
 
 export default defineConfig({
@@ -16,7 +18,4 @@ export default defineConfig({
     remoteRoot: "",
   }
 });`;
-var config_template_default = templateConfig;
-export {
-  config_template_default as default
-};
+exports.default = templateConfig;

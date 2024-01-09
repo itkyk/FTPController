@@ -16,12 +16,16 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var defineConfig_exports = {};
-__export(defineConfig_exports, {
+
+// ts-src/index.ts
+var ts_src_exports = {};
+__export(ts_src_exports, {
   defineConfig: () => defineConfig
 });
-module.exports = __toCommonJS(defineConfig_exports);
-const defineConfig = (config) => {
+module.exports = __toCommonJS(ts_src_exports);
+
+// ts-src/core/defineConfig.ts
+var defineConfig = (config) => {
   return config;
 };
 // Annotate the CommonJS export names for ESM import in node:
