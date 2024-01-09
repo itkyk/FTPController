@@ -1,22 +1,15 @@
 import {deploy} from "../lib/index";
-import {FtpConfig, defineConfig} from "./core/defineConfig";
-import {jsVariants, extensions} from "interpret";
-import rechoir from "rechoir";
+import {FtpConfig} from "./core/defineConfig";
 import * as path from "path";
+import {register} from "esbuild-register/dist/node";
 
 const getConfig = async(configPath: string) => {
-  const ext = path.extname(configPath);
-  const interpreted = Object.keys(jsVariants).find(
-    (variant) => variant === ext
-  );
-  if (interpreted) {
+  register();
     try {
-      rechoir.prepare(extensions, configPath);
       const {default: config} = require(path.resolve(configPath)) as {default: FtpConfig};
       return Promise.resolve(config);
     } catch (error: any) {
         return Promise.reject(error);
-    }
   }
 }
 

@@ -311,22 +311,15 @@ var import_commander = require("commander");
 
 // ts-src/deploy.ts
 var import_lib = __toESM(require_lib());
-var import_interpret = require("interpret");
-var import_rechoir = __toESM(require("rechoir"));
 var path = __toESM(require("path"));
+var import_node = require("esbuild-register/dist/node");
 var getConfig = async (configPath) => {
-  const ext = path.extname(configPath);
-  const interpreted = Object.keys(import_interpret.jsVariants).find(
-    (variant) => variant === ext
-  );
-  if (interpreted) {
-    try {
-      import_rechoir.default.prepare(import_interpret.extensions, configPath);
-      const { default: config } = require(path.resolve(configPath));
-      return Promise.resolve(config);
-    } catch (error) {
-      return Promise.reject(error);
-    }
+  (0, import_node.register)();
+  try {
+    const { default: config } = require(path.resolve(configPath));
+    return Promise.resolve(config);
+  } catch (error) {
+    return Promise.reject(error);
   }
 };
 var upload = async (target, project) => {

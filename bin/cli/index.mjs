@@ -317,22 +317,15 @@ import { Command } from "commander";
 
 // ts-src/deploy.ts
 var import_lib = __toESM(require_lib());
-import { jsVariants, extensions } from "interpret";
-import rechoir from "rechoir";
 import * as path from "path";
+import { register } from "esbuild-register/dist/node";
 var getConfig = async (configPath) => {
-  const ext = path.extname(configPath);
-  const interpreted = Object.keys(jsVariants).find(
-    (variant) => variant === ext
-  );
-  if (interpreted) {
-    try {
-      rechoir.prepare(extensions, configPath);
-      const { default: config } = __require(path.resolve(configPath));
-      return Promise.resolve(config);
-    } catch (error) {
-      return Promise.reject(error);
-    }
+  register();
+  try {
+    const { default: config } = __require(path.resolve(configPath));
+    return Promise.resolve(config);
+  } catch (error) {
+    return Promise.reject(error);
   }
 };
 var upload = async (target, project) => {
