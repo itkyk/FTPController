@@ -39,6 +39,7 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: |-
               set -e &&
+              npm install -g pnpm --no-fund --no-audit --ignore-scripts &&
               pnpm install &&
               pnpm run build --target x86_64-unknown-linux-gnu &&
               find ./artifacts -name "*.node" -exec strip {} \;
