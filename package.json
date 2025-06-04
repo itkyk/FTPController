@@ -33,6 +33,7 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@changesets/cli": "^2.29.4",
     "@napi-rs/cli": "^2.17.0",
     "@types/interpret": "^1.1.3",
     "@types/node": "^20.10.5",
@@ -51,18 +52,17 @@
     "build": "napi build --platform --release",
     "build:lib": "napi build --platform --release ./lib",
     "build:src": "tsc --outDir dist && node -r esbuild-register ./build && tsc --declaration --emitDeclarationOnly --outDir types",
-    "build:all": "npm run build:lib && npm run build:src",
+    "build:all": "pnpm run build:lib && pnpm run build:src",
     "build:debug": "napi build --platform",
     "prepublishOnly": "napi prepublish -t npm",
     "universal": "napi universal",
     "version": "napi version",
     "test": "node ./bin/cli/index.js --init"
   },
-  "packageManager": "yarn@4.0.2",
+  "packageManager": "pnpm@8.15.0",
   "description": "ftp uploader core code",
   "dependencies": {
     "commander": "^11.1.0",
     "esbuild-register": "^3.5.0"
   }
 }
-
