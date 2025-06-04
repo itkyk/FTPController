@@ -59,6 +59,9 @@ fn create_dirs (mut ftp: FtpStream, dir_list: Vec<PathBuf>) -> FtpStream {
 }
 
 pub fn upload_files(mut ftp: FtpStream, local: &str) -> FtpStream {
+    // バイナリモードを明示的に設定
+    ftp.transfer_type(ftp::types::FileType::Binary).ok();
+
     let entries_path = PathBuf::from(&local);
     let (files, dirs) = get_remotes(&local, &entries_path).ok().unwrap();
     ftp = create_dirs(ftp, dirs);
@@ -77,17 +80,19 @@ pub fn upload_files(mut ftp: FtpStream, local: &str) -> FtpStream {
         let mut error_message = String::from("Cannot Found ( ");
         error_message.push_str(&full_path.to_str().unwrap());
         error_message.push_str(" )");
+
+        // ファイルを開き、&mut として渡す
         let mut file_data = File::open(&full_path).expect(error_message.as_str());
-        let mut buffer = Vec::new();
-        file_data.read_to_end(&mut buffer).unwrap();
-        let mut renderer = Cursor::new(buffer.as_slice());
         let file_path = &file.to_str().unwrap();
-        ftp.put(file_path, &mut renderer).unwrap();
+
+        // &mut Read型として渡す
+        ftp.put(file_path, &mut file_data).unwrap();
+
         bar.set_message(file_path.to_string());
         bar.inc(1);
     }
     bar.finish();
-    return ftp
+    ftp
 }
 
 fn get_delete_files(mut ftp: FtpStream, root: &str) -> (FtpStream, Vec<DeletePathMap>){
@@ -103,12 +108,12 @@ fn get_delete_files(mut ftp: FtpStream, root: &str) -> (FtpStream, Vec<DeletePat
         };
         files.push(file_data);
     }
-    return (ftp, files);
+    (ftp, files)
 }
 
 fn delete (mut ftp: FtpStream, path: &str) -> FtpStream{
     ftp.rm(&path).unwrap();
-    return ftp
+    ftp
 }
 
 fn delete_files (mut ftp: FtpStream, root: &str) -> FtpStream {
@@ -131,7 +136,7 @@ fn delete_files (mut ftp: FtpStream, root: &str) -> FtpStream {
             ftp.rmdir(&path.to_str().unwrap()).ok();
         }
     };
-    return ftp;
+    ftp
 }
 
 pub fn ftp_init(local: &str, remote: &str, host: &str, user: &str, pw: &str, is_delete: bool) -> std::result::Result<(), FtpError> {
