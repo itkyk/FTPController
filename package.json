@@ -67,5 +67,9 @@
   "dependencies": {
     "commander": "^11.1.0",
     "esbuild-register": "^3.5.0"
+  },
+  "volta": {
+    "node": "20.19.2",
+    "pnpm": "8.15.0"
   }
 }
