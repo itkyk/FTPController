@@ -4,6 +4,9 @@
   "main": "bin/index.cjs",
   "types": "types/index.d.ts",
   "module": "bin/index.mjs",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/itkyk/FTPController.git"
