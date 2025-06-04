@@ -171,7 +171,8 @@ jobs:
       - name: Version (beta)
         if: github.ref == 'refs/heads/beta'
         run: |
-          pnpm changeset version --snapshot beta
+          pnpm changeset pre enter snapshot
+          pnpm changeset version
           git add .
           git commit -m "chore(release): version packages (beta snapshot)" || echo "No changes to commit"
       - name: Version (main)
