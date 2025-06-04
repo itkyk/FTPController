@@ -1,7 +1,8 @@
 use ftp::{FtpStream, FtpError};
 use std::fs;
 use std::fs::File;
-use std::io::{Cursor, Read, Error as IoError};
+use std::io::{Error as IoError};
+
 use std::option::Option::Some;
 use std::path::Path;
 use std::path::PathBuf;
@@ -18,7 +19,7 @@ pub enum FtpControllerError {
     FtpError(FtpError),
     PathError(String),
     ConversionError(String),
-    MkdirError(String),
+    // MkdirError(String), // 未使用のためコメントアウト
     FileOpenError(String),
     FileUploadError(String),
     FileListError(String),
@@ -33,7 +34,7 @@ impl fmt::Display for FtpControllerError {
             Self::FtpError(err) => write!(f, "FTP error: {}", err),
             Self::PathError(msg) => write!(f, "Path error: {}", msg),
             Self::ConversionError(msg) => write!(f, "Conversion error: {}", msg),
-            Self::MkdirError(msg) => write!(f, "Directory creation error: {}", msg),
+            // Self::MkdirError(msg) => write!(f, "Directory creation error: {}", msg),
             Self::FileOpenError(msg) => write!(f, "File open error: {}", msg),
             Self::FileUploadError(msg) => write!(f, "File upload error: {}", msg),
             Self::FileListError(msg) => write!(f, "File listing error: {}", msg),
@@ -238,7 +239,7 @@ fn delete_files(mut ftp: FtpStream, root: &str) -> Result<FtpStream, FtpControll
     for item in file_list {
         let mut delete_path = DefaultHasher::new();
         item.hash(&mut delete_path);
-        delete_path.finish();
+        let _ = delete_path.finish();
 
         if item.file_type != String::from("d") {
             // ファイルの場合
@@ -337,4 +338,32 @@ pub fn ftp_init(local: &str, remote: &str, host: &str, user: &str, pw: &str, is_
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile;
+
+    #[test]
+    fn test_get_remotes_empty_dir() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let dir_path = temp_dir.path().to_path_buf();
+        let result = get_remotes(dir_path.to_str().unwrap(), &dir_path);
+        assert!(result.is_ok());
+        let (files, dirs) = result.unwrap();
+        assert!(files.is_empty());
+        assert!(dirs.is_empty());
+    }
+
+    #[test]
+    fn test_delete_path_map_hash() {
+        let a = DeletePathMap { file_type: "f".to_string(), file_name: "file.txt".to_string() };
+        let b = DeletePathMap { file_type: "f".to_string(), file_name: "file.txt".to_string() };
+        let mut hasher_a = DefaultHasher::new();
+        let mut hasher_b = DefaultHasher::new();
+        a.hash(&mut hasher_a);
+        b.hash(&mut hasher_b);
+        assert_eq!(hasher_a.finish(), hasher_b.finish());
+    }
 }

@@ -29,33 +29,42 @@ jobs:
           - host: macos-latest
             target: x86_64-apple-darwin
             build: |
-              yarn build
-              strip -x *.node
+              pnpm run build
+              find ./artifacts -name "*.node" -exec strip -x {} \;
           - host: windows-latest
-            build: yarn build
+            build: pnpm run build
             target: x86_64-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: |-
               set -e &&
-              yarn build --target x86_64-unknown-linux-gnu &&
-              strip *.node
+              echo "Before: corepack version => $(corepack --version || echo 'not installed')" &&
+              npm install -g corepack@latest && 
+              echo "After : corepack version => $(corepack --version)" &&
+              corepack enable && 
+              pnpm install &&
+              pnpm run build --target x86_64-unknown-linux-gnu &&
+              find ./artifacts -name "*.node" -exec strip {} \;
           - host: macos-latest
             target: aarch64-apple-darwin
             build: |
-              yarn build --target aarch64-apple-darwin
-              strip -x *.node
-    name: stable - ${{ matrix.settings.target }} - node@18
+              pnpm run build --target aarch64-apple-darwin
+              find ./artifacts -name "*.node" -exec strip -x {} \;
+    name: stable - ${{ matrix.settings.target }} - node@20
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
       - name: Setup node
         uses: actions/setup-node@v4
         if: ${{ !matrix.settings.docker }}
         with:
-          node-version: 18
-          cache: yarn
+          node-version: 20
+          cache: pnpm
       - name: Install
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
@@ -82,16 +91,16 @@ jobs:
         shell: bash
       - name: Setup node x86
         if: matrix.settings.target == 'i686-pc-windows-msvc'
-        run: yarn config set supportedArchitectures.cpu "ia32"
+        run: pnpm config set supportedArchitectures.cpu "ia32"
         shell: bash
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install
       - name: Setup node x86
         uses: actions/setup-node@v4
         if: matrix.settings.target == 'i686-pc-windows-msvc'
         with:
-          node-version: 18
-          cache: yarn
+          node-version: 20
+          cache: pnpm
           architecture: x86
       - name: Build in docker
         uses: addnab/docker-run-action@v3
@@ -105,112 +114,84 @@ jobs:
         if: ${{ !matrix.settings.docker }}
         shell: bash
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: ${{ env.APP_NAME }}.*.node
+          path: artifacts/*.node
           if-no-files-found: error
-  test-macOS-windows-binding:
-    name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
-    needs:
-      - build
-    strategy:
-      fail-fast: false
-      matrix:
-        settings:
-          - host: macos-latest
-            target: x86_64-apple-darwin
-          - host: windows-latest
-            target: x86_64-pc-windows-msvc
-        node:
-          - '18'
-          - '20'
-    runs-on: ${{ matrix.settings.host }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node }}
-          cache: yarn
-      - name: Install dependencies
-        run: yarn install
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: bindings-${{ matrix.settings.target }}
-          path: .
-      - name: List packages
-        run: ls -R .
-        shell: bash
-  test-linux-x64-gnu-binding:
-    name: Test bindings on Linux-x64-gnu - node@${{ matrix.node }}
-    needs:
-      - build
-    strategy:
-      fail-fast: false
-      matrix:
-        node:
-          - '18'
-          - '20'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node }}
-          cache: yarn
-      - name: Install dependencies
-        run: yarn install
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: bindings-x86_64-unknown-linux-gnu
-          path: .
-      - name: List packages
-        run: ls -R .
-        shell: bash
-      - name: Test bindings
-        run: docker run --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-slim
+
   publish:
     name: Publish
     runs-on: ubuntu-latest
-    needs:
-      - test-macOS-windows-binding
-      - test-linux-x64-gnu-binding
+    needs: build
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Git User
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-          cache: yarn
+          node-version: 20
+          cache: pnpm
       - name: Install dependencies
-        run: yarn install
-      - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        run: pnpm install
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
       - name: Move artifacts
-        run: yarn artifacts
-      - name: List packages
-        run: ls -R ./npm
-        shell: bash
-      - name: Publish
         run: |
-          npm config set provenance true
-          if git log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+$";
-          then
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            npm publish --access public
-          elif git log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+";
-          then
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            npm publish --tag next --access public
-          else
-            echo "Not a release, skipping publish"
-          fi
+          mkdir -p npm
+          for dir in artifacts/bindings-*; do
+            target=$(echo $dir | sed 's/artifacts\/bindings-//')
+            case $target in
+              x86_64-apple-darwin) platform="darwin-x64" ;;
+              aarch64-apple-darwin) platform="darwin-arm64" ;;
+              x86_64-pc-windows-msvc) platform="win32-x64-msvc" ;;
+              x86_64-unknown-linux-gnu) platform="linux-x64-gnu" ;;
+              *) echo "Unknown target: $target"; exit 1 ;;
+            esac
+            mkdir -p npm/$platform
+            find $dir -name "*.node" -exec cp {} npm/$platform/ \;
+          done
+      - name: List packages
+        run: ls -R npm
+        shell: bash
+      - name: Build TypeScript
+        run: pnpm run build:src
+      - name: Version (beta)
+        if: github.ref == 'refs/heads/beta'
+        run: |
+          pnpm changeset pre enter snapshot
+          pnpm changeset version
+          git add .
+          git commit -m "chore(release): version packages (beta snapshot)" || echo "No changes to commit"
+      - name: Version (main)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          pnpm changeset version
+          git add .
+          git commit -m "chore(release): version packages" || echo "No changes to commit"
+      - name: Publish to NPM
+        run: |
+          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
+          pnpm changeset publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push Tags and Changes
+        run: |
+          git push --follow-tags
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+
