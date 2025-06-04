@@ -40,12 +40,12 @@ jobs:
             build: |-
               set -e &&
               npm run build --target x86_64-unknown-linux-gnu &&
-              strip *.node
+              find . -name "*.node" -exec strip {} \;
           - host: macos-latest
             target: aarch64-apple-darwin
             build: |
               npm run build --target aarch64-apple-darwin
-              strip -x *.node
+              find . -name "*.node" -exec strip {} \;
     name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
     steps:
