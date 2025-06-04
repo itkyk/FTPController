@@ -132,15 +132,15 @@ jobs:
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
       - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: pnpm
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8.15.0
       - name: Install dependencies
         run: pnpm install
       - name: Download artifacts
