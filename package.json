@@ -63,7 +63,7 @@
     "prepublishOnly": "napi prepublish -t npm",
     "universal": "napi universal",
     "version": "napi version",
-    "test": "node ./bin/cli/index.js --init"
+    "test": "cargo test"
   },
   "packageManager": "pnpm@8.15.0",
   "description": "ftp uploader core code",

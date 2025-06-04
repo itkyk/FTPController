@@ -16,5 +16,8 @@ indicatif = "0.17.7"
 [build-dependencies]
 napi-build = "2.0.1"
 
+[dev-dependencies]
+tempfile = "*"
+
 [profile.release]
 lto = true
