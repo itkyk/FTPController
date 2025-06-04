@@ -39,6 +39,10 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: |-
               set -e &&
+              echo "Before: corepack version => $(corepack --version || echo 'not installed')" &&
+              npm install -g corepack@latest && 
+              echo "After : corepack version => $(corepack --version)" &&
+              corepack enable && 
               pnpm install &&
               pnpm run build --target x86_64-unknown-linux-gnu &&
               find ./artifacts -name "*.node" -exec strip {} \;
@@ -188,4 +192,5 @@ jobs:
           git push --follow-tags
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
