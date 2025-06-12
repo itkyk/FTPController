@@ -1,6 +1,6 @@
 {
   "name": "@itkyk/ftp-controller",
-  "version": "1.0.0-snapshot.6",
+  "version": "1.0.0-snapshot.7",
   "main": "bin/index.cjs",
   "types": "types/index.d.ts",
   "module": "bin/index.mjs",
