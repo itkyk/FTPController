@@ -1,7 +1,8 @@
 use ftp::{FtpStream, FtpError};
 use std::fs;
 use std::fs::File;
-use std::io::{Error as IoError};
+use std::io::{Error as IoError, Read, BufReader};
+use std::time::Duration;
 
 use std::option::Option::Some;
 use std::path::Path;
@@ -25,6 +26,8 @@ pub enum FtpControllerError {
     FileListError(String),
     FileDeleteError(String),
     DirCreateError(String),
+    FileVerificationError(String),
+    TransferModeError(String),
 }
 
 impl fmt::Display for FtpControllerError {
@@ -40,6 +43,8 @@ impl fmt::Display for FtpControllerError {
             Self::FileListError(msg) => write!(f, "File listing error: {}", msg),
             Self::FileDeleteError(msg) => write!(f, "File deletion error: {}", msg),
             Self::DirCreateError(msg) => write!(f, "Directory creation error: {}", msg),
+            Self::FileVerificationError(msg) => write!(f, "File verification error: {}", msg),
+            Self::TransferModeError(msg) => write!(f, "Transfer mode error: {}", msg),
         }
     }
 }
@@ -118,11 +123,13 @@ fn create_dirs(mut ftp: FtpStream, dir_list: Vec<PathBuf>) -> Result<FtpStream, 
 }
 
 pub fn upload_files(mut ftp: FtpStream, local: &str) -> Result<FtpStream, FtpControllerError> {
-    // バイナリモードを明示的に設定
-    if let Err(e) = ftp.transfer_type(ftp::types::FileType::Binary) {
-        eprintln!("Warning: Failed to set binary transfer mode: {}", e);
-        // エラーは記録するが処理は続行
-    }
+    // バイナリモードを明示的に設定し、設定に失敗した場合は続行しない
+    ftp.transfer_type(ftp::types::FileType::Binary)
+        .map_err(|e| FtpControllerError::TransferModeError(format!("Failed to set binary transfer mode: {}", e)))?;
+
+    // タイムアウト設定
+    ftp.set_timeout(Some(Duration::from_secs(300)))
+        .map_err(|e| FtpControllerError::FtpError(e))?;
 
     let entries_path = PathBuf::from(&local);
     let (files, dirs) = get_remotes(&local, &entries_path)?;
@@ -141,6 +148,8 @@ pub fn upload_files(mut ftp: FtpStream, local: &str) -> Result<FtpStream, FtpCon
         eprintln!("Warning: Failed to set progress bar style");
     }
 
+    const MAX_RETRIES: u8 = 3;
+
     for file in files {
         let mut full_path = PathBuf::new();
         full_path.push(&local);
@@ -154,14 +163,79 @@ pub fn upload_files(mut ftp: FtpStream, local: &str) -> Result<FtpStream, FtpCon
             .ok_or_else(|| FtpControllerError::ConversionError(format!("Failed to convert full path to string: {:?}", full_path)))?;
 
         // ファイルを開く
-        let mut file_data = File::open(&full_path)
+        let file_data = File::open(&full_path)
             .map_err(|e| FtpControllerError::FileOpenError(format!("Cannot open file {}: {}", full_path_str, e)))?;
-
-        // FTP にファイルをアップロード
-        if let Err(e) = ftp.put(file_str, &mut file_data) {
-            return Err(FtpControllerError::FileUploadError(format!(
-                "Failed to upload file {}: {}", file_str, e
-            )));
+        
+        // ファイルサイズを取得
+        let metadata = fs::metadata(&full_path)
+            .map_err(|e| FtpControllerError::IoError(e))?;
+        let file_size = metadata.len();
+        
+        // 0バイトのファイルの場合は特別処理
+        if file_size == 0 {
+            // 空ファイルを作成
+            if let Err(e) = ftp.put(file_str, &mut BufReader::new(file_data)) {
+                return Err(FtpControllerError::FileUploadError(format!(
+                    "Failed to upload empty file {}: {}", file_str, e
+                )));
+            }
+        } else {
+            // リトライロジック
+            let mut retry_count = 0;
+            let mut upload_success = false;
+            
+            while !upload_success && retry_count < MAX_RETRIES {
+                // 再度ファイルを開く（リトライの場合）
+                let mut file_to_upload = File::open(&full_path)
+                    .map_err(|e| FtpControllerError::FileOpenError(format!("Cannot open file for retry {}: {}", full_path_str, e)))?;
+                
+                // バイナリモードを再確認
+                ftp.transfer_type(ftp::types::FileType::Binary)
+                    .map_err(|e| FtpControllerError::TransferModeError(format!("Failed to set binary transfer mode: {}", e)))?;
+                
+                // FTP にファイルをアップロード
+                if let Err(e) = ftp.put(file_str, &mut file_to_upload) {
+                    retry_count += 1;
+                    if retry_count >= MAX_RETRIES {
+                        return Err(FtpControllerError::FileUploadError(format!(
+                            "Failed to upload file {} after {} retries: {}", file_str, MAX_RETRIES, e
+                        )));
+                    }
+                    eprintln!("Warning: Upload attempt {} failed for file {}: {}. Retrying...", retry_count, file_str, e);
+                    continue;
+                }
+                
+                // アップロード後のファイルサイズ検証
+                match ftp.size(file_str) {
+                    Ok(remote_size) => {
+                        if remote_size != file_size {
+                            retry_count += 1;
+                            if retry_count >= MAX_RETRIES {
+                                return Err(FtpControllerError::FileVerificationError(format!(
+                                    "File size mismatch after upload for {}: local={}, remote={}", 
+                                    file_str, file_size, remote_size
+                                )));
+                            }
+                            eprintln!("Warning: File size mismatch for {}: local={}, remote={}. Retrying upload...", 
+                                      file_str, file_size, remote_size);
+                            // リモートファイルを削除してリトライ
+                            let _ = ftp.rm(file_str);
+                            continue;
+                        }
+                        upload_success = true;
+                    },
+                    Err(e) => {
+                        retry_count += 1;
+                        if retry_count >= MAX_RETRIES {
+                            return Err(FtpControllerError::FileVerificationError(format!(
+                                "Could not verify file size after upload for {}: {}", file_str, e
+                            )));
+                        }
+                        eprintln!("Warning: Could not verify file size for {}. Retrying upload...", file_str);
+                        continue;
+                    }
+                }
+            }
         }
 
         bar.set_message(file_str.to_string());
@@ -274,67 +348,95 @@ fn delete_files(mut ftp: FtpStream, root: &str) -> Result<FtpStream, FtpControll
 }
 
 pub fn ftp_init(local: &str, remote: &str, host: &str, user: &str, pw: &str, is_delete: bool) -> Result<(), FtpControllerError> {
-    // FTP接続
-    let mut ftp = FtpStream::connect(host)?;
+    const MAX_CONNECTION_RETRIES: u8 = 3;
+    let mut connection_retry = 0;
+    
+    // 接続リトライループ
+    loop {
+        // FTP接続
+        let connect_result = FtpStream::connect(host);
+        
+        if let Err(e) = &connect_result {
+            connection_retry += 1;
+            if connection_retry >= MAX_CONNECTION_RETRIES {
+                return Err(FtpControllerError::FtpError(e.clone()));
+            }
+            eprintln!("Warning: Connection attempt {} failed: {}. Retrying...", connection_retry, e);
+            continue;
+        }
+        
+        let mut ftp = connect_result?;
+        
+        // 接続タイムアウトの設定
+        ftp.set_timeout(Some(Duration::from_secs(300)))
+            .map_err(|e| FtpControllerError::FtpError(e))?;
 
-    // ログイン
-    ftp.login(user, pw)
-        .map_err(|e| FtpControllerError::FtpError(e))?;
-
-    // バイナリモードを設定
-    if let Err(e) = ftp.transfer_type(ftp::types::FileType::Binary) {
-        eprintln!("Warning: Failed to set binary transfer mode: {}", e);
-        // エラーは記録するが処理は続行
-    }
-
-    // リモートディレクトリ階層を作成し移動
-    for remote_root in remote.split("/").collect::<Vec<_>>() {
-        if remote_root.is_empty() {
+        // ログイン
+        if let Err(e) = ftp.login(user, pw) {
+            connection_retry += 1;
+            if connection_retry >= MAX_CONNECTION_RETRIES {
+                return Err(FtpControllerError::FtpError(e));
+            }
+            eprintln!("Warning: Login attempt {} failed: {}. Retrying...", connection_retry, e);
             continue;
         }
 
-        // ディレクトリが存在するか確認
-        let dir_exists = ftp.size(remote_root).is_ok();
+        // バイナリモードを設定（失敗した場合は続行しない）
+        ftp.transfer_type(ftp::types::FileType::Binary)
+            .map_err(|e| FtpControllerError::TransferModeError(format!("Failed to set binary transfer mode: {}", e)))?;
 
-        // 存在しない場合は作成
-        if !dir_exists {
-            if let Err(e) = ftp.mkdir(remote_root) {
-                eprintln!("Warning: Could not create directory {}: {}", remote_root, e);
-                // 既に存在する場合など、エラーを記録するが処理は続行
+        // リモートディレクトリ階層を作成し移動
+        for remote_root in remote.split("/").collect::<Vec<_>>() {
+            if remote_root.is_empty() {
+                continue;
+            }
+
+            // ディレクトリが存在するか確認
+            let dir_exists = ftp.size(remote_root).is_ok();
+
+            // 存在しない場合は作成
+            if !dir_exists {
+                if let Err(e) = ftp.mkdir(remote_root) {
+                    eprintln!("Warning: Could not create directory {}: {}", remote_root, e);
+                    // 既に存在する場合など、エラーを記録するが処理は続行
+                }
+            }
+
+            // ディレクトリに移動
+            if let Err(e) = ftp.cwd(remote_root) {
+                return Err(FtpControllerError::DirCreateError(
+                    format!("Failed to change to directory {}: {}", remote_root, e)
+                ));
             }
         }
 
-        // ディレクトリに移動
-        if let Err(e) = ftp.cwd(remote_root) {
-            return Err(FtpControllerError::DirCreateError(
-                format!("Failed to change to directory {}: {}", remote_root, e)
-            ));
+        // ファイル削除処理（要求された場合）
+        if is_delete {
+            println!("Start delete remote");
+            let last_delete_root = PathBuf::from("./");
+
+            let last_delete_root_str = last_delete_root.to_str()
+                .ok_or_else(|| FtpControllerError::ConversionError(format!(
+                    "Failed to convert path to string: {:?}", last_delete_root
+                )))?;
+
+            ftp = delete_files(ftp, last_delete_root_str)?;
+            println!("Finish delete remote");
         }
-    }
 
-    // ファイル削除処理（要求された場合）
-    if is_delete {
-        println!("Start delete remote");
-        let last_delete_root = PathBuf::from("./");
+        // アップロード処理
+        println!("Start Upload");
+        ftp = upload_files(ftp, local)?;
+        println!("End Upload");
 
-        let last_delete_root_str = last_delete_root.to_str()
-            .ok_or_else(|| FtpControllerError::ConversionError(format!(
-                "Failed to convert path to string: {:?}", last_delete_root
-            )))?;
+        // 接続を正常に終了
+        if let Err(e) = ftp.quit() {
+            eprintln!("Warning: Error when closing FTP connection: {}", e);
+            // 接続終了時のエラーは最終結果に影響しないので、警告だけ出して続行
+        }
 
-        ftp = delete_files(ftp, last_delete_root_str)?;
-        println!("Finish delete remote");
-    }
-
-    // アップロード処理
-    println!("Start Upload");
-    ftp = upload_files(ftp, local)?;
-    println!("End Upload");
-
-    // 接続を終了
-    if let Err(e) = ftp.quit() {
-        eprintln!("Warning: Error when closing FTP connection: {}", e);
-        // 接続終了時のエラーは処理を続行
+        // すべての処理が成功したのでループを抜ける
+        break;
     }
 
     Ok(())

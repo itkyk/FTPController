@@ -14,8 +14,10 @@ fn deploy(local_root: String, remote_root: String, host: String,  password: Stri
         deleting = true;
     }
     let res = ftp_module::ftp_init(&local_root, &remote_root, &result_host.as_str(), &user, &password, deleting);
-    if !res.is_ok() {
-        println!("FTP Connection Error");
+    if let Err(e) = res {
+        eprintln!("FTP Error: {}", e);
+    } else {
+        println!("FTP transfer completed successfully");
     }
 }
 
