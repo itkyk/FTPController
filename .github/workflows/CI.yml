@@ -2,21 +2,21 @@ name: CI
 env:
   DEBUG: napi:*
   APP_NAME: ftp-controller
-  MACOSX_DEPLOYMENT_TARGET: '10.13'
+  MACOSX_DEPLOYMENT_TARGET: "10.13"
 permissions:
   contents: write
   id-token: write
-'on':
+"on":
   push:
     branches:
       - main
       - beta
     tags-ignore:
-      - '**'
+      - "**"
     paths-ignore:
-      - '**/*.md'
+      - "**/*.md"
       - LICENSE
-      - '**/*.gitignore'
+      - "**/*.gitignore"
       - .editorconfig
       - docs/**
   pull_request: null
@@ -40,9 +40,9 @@ jobs:
             build: |-
               set -e &&
               echo "Before: corepack version => $(corepack --version || echo 'not installed')" &&
-              npm install -g corepack@latest && 
+              npm install -g corepack@latest &&
               echo "After : corepack version => $(corepack --version)" &&
-              corepack enable && 
+              corepack enable &&
               pnpm install &&
               pnpm run build --target x86_64-unknown-linux-gnu &&
               find ./artifacts -name "*.node" -exec strip {} \;
@@ -107,7 +107,7 @@ jobs:
         if: ${{ matrix.settings.docker }}
         with:
           image: ${{ matrix.settings.docker }}
-          options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build'
+          options: "--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build"
           run: ${{ matrix.settings.build }}
       - name: Build
         run: ${{ matrix.settings.build }}
@@ -171,7 +171,6 @@ jobs:
       - name: Version (beta)
         if: github.ref == 'refs/heads/beta'
         run: |
-          pnpm changeset pre enter snapshot
           pnpm changeset version
           git add .
           git commit -m "chore(release): version packages (beta snapshot)" || echo "No changes to commit"
@@ -193,5 +192,3 @@ jobs:
           git push --follow-tags
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
