@@ -1,8 +1,8 @@
 use ftp::{FtpStream, FtpError};
 use std::fs;
 use std::fs::File;
-use std::io::{Error as IoError, Read, BufReader};
-use std::time::Duration;
+use std::io::{Error as IoError, BufReader};
+// use std::time::Duration;  // 使用しないので削除
 
 use std::option::Option::Some;
 use std::path::Path;
@@ -127,9 +127,7 @@ pub fn upload_files(mut ftp: FtpStream, local: &str) -> Result<FtpStream, FtpCon
     ftp.transfer_type(ftp::types::FileType::Binary)
         .map_err(|e| FtpControllerError::TransferModeError(format!("Failed to set binary transfer mode: {}", e)))?;
 
-    // タイムアウト設定
-    ftp.set_timeout(Some(Duration::from_secs(300)))
-        .map_err(|e| FtpControllerError::FtpError(e))?;
+    // タイムアウト設定 - このライブラリバージョンではサポートされていないので削除
 
     let entries_path = PathBuf::from(&local);
     let (files, dirs) = get_remotes(&local, &entries_path)?;
@@ -207,22 +205,34 @@ pub fn upload_files(mut ftp: FtpStream, local: &str) -> Result<FtpStream, FtpCon
                 
                 // アップロード後のファイルサイズ検証
                 match ftp.size(file_str) {
-                    Ok(remote_size) => {
-                        if remote_size != file_size {
+                    Ok(remote_size_opt) => {
+                        if let Some(remote_size) = remote_size_opt {
+                            if remote_size as u64 != file_size {
+                                retry_count += 1;
+                                if retry_count >= MAX_RETRIES {
+                                    return Err(FtpControllerError::FileVerificationError(format!(
+                                        "File size mismatch after upload for {}: local={}, remote={}", 
+                                        file_str, file_size, remote_size
+                                    )));
+                                }
+                                eprintln!("Warning: File size mismatch for {}: local={}, remote={}. Retrying upload...", 
+                                        file_str, file_size, remote_size);
+                                // リモートファイルを削除してリトライ
+                                let _ = ftp.rm(file_str);
+                                continue;
+                            }
+                            upload_success = true;
+                        } else {
+                            // サイズが取得できなかった場合
                             retry_count += 1;
                             if retry_count >= MAX_RETRIES {
                                 return Err(FtpControllerError::FileVerificationError(format!(
-                                    "File size mismatch after upload for {}: local={}, remote={}", 
-                                    file_str, file_size, remote_size
+                                    "Could not get file size after upload for {}", file_str
                                 )));
                             }
-                            eprintln!("Warning: File size mismatch for {}: local={}, remote={}. Retrying upload...", 
-                                      file_str, file_size, remote_size);
-                            // リモートファイルを削除してリトライ
-                            let _ = ftp.rm(file_str);
+                            eprintln!("Warning: Could not get file size for {}. Retrying upload...", file_str);
                             continue;
                         }
-                        upload_success = true;
                     },
                     Err(e) => {
                         retry_count += 1;
@@ -359,7 +369,12 @@ pub fn ftp_init(local: &str, remote: &str, host: &str, user: &str, pw: &str, is_
         if let Err(e) = &connect_result {
             connection_retry += 1;
             if connection_retry >= MAX_CONNECTION_RETRIES {
-                return Err(FtpControllerError::FtpError(e.clone()));
+                // FtpErrorはCloneを実装していないので、新しいエラーメッセージを作成
+                let io_error = IoError::new(
+                    std::io::ErrorKind::ConnectionRefused,
+                    format!("Connection failed after {} attempts", MAX_CONNECTION_RETRIES)
+                );
+                return Err(FtpControllerError::FtpError(FtpError::InvalidResponse(format!("{}", io_error))));
             }
             eprintln!("Warning: Connection attempt {} failed: {}. Retrying...", connection_retry, e);
             continue;
@@ -367,9 +382,7 @@ pub fn ftp_init(local: &str, remote: &str, host: &str, user: &str, pw: &str, is_
         
         let mut ftp = connect_result?;
         
-        // 接続タイムアウトの設定
-        ftp.set_timeout(Some(Duration::from_secs(300)))
-            .map_err(|e| FtpControllerError::FtpError(e))?;
+        // タイムアウト設定 - このライブラリバージョンではサポートされていないので削除
 
         // ログイン
         if let Err(e) = ftp.login(user, pw) {
