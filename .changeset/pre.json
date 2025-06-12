@@ -1,0 +1,10 @@
+{
+  "mode": "pre",
+  "tag": "snapshot",
+  "initialVersions": {
+    "@itkyk/ftp-controller": "1.0.0-beta0.5"
+  },
+  "changesets": [
+    "tender-lies-hear"
+  ]
+}
